@@ -1,0 +1,35 @@
+{
+  "name": "internet-visualizer2",
+  "version": "0.0.1",
+  "homepage": "https://github.com/toyokazu/internet-visualizer2",
+  "author": {
+    "name": "toyokazu"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/toyokazu/internet-visualizer2.git"
+  },
+  "bugs": {
+    "url": "https://github.com/toyokazu/internet-visualizer2/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/toyokazu/internet-visualizer2/blob/master/LICENSE-MIT"
+    }
+  ],
+  "main": "scripts/stream_server.js",
+  "engines": {
+    "node": ">= 0.10.0"
+  },
+  "dependencies": {
+    "ip": "0.3.0",
+    "posix-getopt": "1.0.0",
+    "maxmind-db-reader": "0.0.2",
+    "socket.io": "0.9.16",
+    "socket.io-client": "0.9.16"
+  },
+  "keywords": [
+    "internet", "capture", "visualize", "web"
+  ]
+}
