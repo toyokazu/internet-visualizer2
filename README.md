@@ -29,6 +29,10 @@ http://dev.maxmind.com/geoip/geoip2/geolite2/
     $ gunzip GeoLite2-City.mmdb.gz
     $ cd ..
 
+Download Wireshark from the following URI and install it.
+
+http://www.wireshark.org/download.html
+
 
 # Start servers
 
@@ -43,6 +47,12 @@ Start tshark capture sender.
 If you have several network interfaces, specify the one you want.
 
     $ node scripts/capture_sender.js -i en0
+
+If you have tshark command at a different location from default
+path /Applications/Wireshark.app/Contents/Resources/bin/tshark,
+Please specify it.
+
+    $ node scripts/capture_sender.js -i en0 -t /usr/local/bin/tshark
 
 Start http server to host JavaScript visualization program.
 
