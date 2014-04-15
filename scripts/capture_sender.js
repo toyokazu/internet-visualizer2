@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 var path = require('path');
+var LineReader = require(path.resolve(__dirname, '../lib/line_reader.js')).LineReader;
 var mod_getopt = require('posix-getopt');
 var https = require('https');
 var ip = require('ip');
 var mmdbreader = require('maxmind-db-reader');
 var spawn = require('child_process').spawn;
 var util = require('util');
-var LineReader = require(path.resolve(__dirname, '../lib/line_reader.js')).LineReader;
 var io = require('socket.io-client');
 
 // --- parse options ---
@@ -139,7 +139,8 @@ var globalize = function(addr) {
 // --- geoip related code ---
 //
 //  create new reader from a countries file
-var cities = new mmdbreader('./GeoLite2-City.mmdb');
+var cities = new mmdbreader(path.resolve(__dirname, '../db/GeoLite2-City.mmdb'));
+//var cities = new mmdbreader('./GeoLite2-City.mmdb');
 //var countries = new mmdbreader('./GeoLite2-Country.mmdb');
 // get geo data and console.log it 
 //console.log(cities.getGeoData('182.22.39.242').location);
@@ -197,10 +198,8 @@ reader.on('line', function(line){
   if (debug) {
     console.log(util.inspect(message));
   }
+  buffer.push(message);
   if (capture_interval == 0) {
-    buffer.push(message);
     send_message();
-  } else {
-    buffer.push(message);
   }
 });
