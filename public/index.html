@@ -3,19 +3,35 @@
   <head>
     <meta charset="utf-8" />
     <script src="d3.v3.js" charset="utf-8"></script>
+    <script src="topojson.js" charset="utf-8"></script>
     <script src="http://localhost:12345/socket.io/socket.io.js" charset="utf-8"></script>
     <!--<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>-->
     <style>
       .map {
         fill: #CCDDCC;
       }
+      #scores {
+        float: right;
+      }
     </style>
   </head>
   <body>
     <div id="message"></div>
     <div id="visualization"></div>
+    <div id="scores"></div>
     <script>
       // shared parameters
+      var clients;
+      d3.json('clients.json', function(error, json) {
+        if (error) return console.warn(error);
+        clients = json;
+      });
+      // score table
+      var table = d3.select('#scores').append('table');
+      //Object.keys(clients).forEach(key) {
+      //}
+
+      // svg canvas
       var canvas = d3.select('#visualization')
       var width = 960;
       var height = 520;
@@ -23,26 +39,105 @@
         .attr("width", width)
         .attr("height", height);
       // map element group
-      var svg_map = svg.append('svg:g');
+      var svg_map = svg.append('svg:g')
+         .attr("class", "map");
       // animation element group
-      var svg_anim = svg.append('svg:g');
+      var svg_anim = svg.append('svg:g')
+        .attr("class", "packet");
       var projection = d3.geo.mercator()
         .scale(150)
         .translate([width/2,height/2])
         .center([0, 30]);
       var path = d3.geo.path().projection(projection);
 
+      //d3.json("world.json", function(error, world) {
+      //  if (error) return console.error(error);
+      //  svg.append("path")
+      //    .datum(topojson.object(world, world.objects.lands).geometries)
+      //    .attr({
+      //      'class': 'map',
+      //      'd': path
+      //    });
+      //});
+
       d3.json("ne_110m_land.geojson", function(json) {
         drawMap(json);
       });
+      //svg_map.on('click', function() {
+      //  console.log(Date());
+      //  redrawMap('Japan', 0);
+      //});
+      
+      //d3.json("ne_10m_populated_places.geojson", function(json) {
+      //  drawCapital(json);
+      //});
 
       function drawMap(json) {
         var land = svg_map.selectAll('path')
         .data(json.features).enter().append('svg:path')
         .attr({
           'class': 'map',
-          d: path
+          d: path,
+          'name': function(d) { 
+            //console.log(d.properties.name);
+            return d.properties.name;
+          }
         });
+      }
+
+      function __drawMap(json) {
+        var land = svg_map.selectAll('path')
+        .data(json.features).enter().append('svg:path')
+        .attr({
+          'class': 'map',
+          'd': path,
+          'name': function(d) { 
+            //console.log(d.properties.name);
+            return d.properties.name;
+          }
+        })
+        .style('fill', function(d) {
+          if (d.properties.name == 'United States') {
+            return 'blue';
+          } else {
+            return '#ccddcc';
+          }
+        });
+      }
+
+      function addPointsToCountry(country, color, point, delay) {
+        var country_path = svg_map.select('path[name="' + country + '"]')
+        // 征服されていたらポイント加算なし
+        if (country_path.attr("conquered") != null) {
+          return;
+        }
+        var attr_point = "point_" + color;
+        var value = country_path.attr(attr_point);
+        var curr_point;
+        if (value == null) {
+          curr_point = 0;
+        } else {
+          curr_point = parseInt(value, 10);
+        }
+        //console.log("curr_point = " + curr_point);
+        new_point = curr_point + parseInt(point, 10);
+        //console.log("new_point = " + new_point);
+        country_path.attr(attr_point, new_point);
+        if (new_point > 10000) {
+          setPathColor(country_path, color, delay);
+          country_path.attr("conquered", true);
+        }
+      }
+
+      //function redrawCountry(country, color, delay) {
+      function setPathColor(path, color, delay) {
+        //console.log(svg_map.select('[name="Japan"]'));
+        //svg_map.select('path[name="' + country + '"]')
+        path.transition().delay(delay).duration(100)
+          .style('fill', color);
+          //function() {
+          //  return "hsl(" + Math.random() * 360 + ",100%,50%)";
+          //});
       }
 
       function toLineString(d) {
@@ -63,9 +158,17 @@
         return array;
       }
 
-      function generateAnimation(packets) {
-        pathData = toLineStrings(packets);
+      function getClientColor(packet) {
+        if (clients[packet["org_src_ip"]] != null) {
+          return clients[packet["org_src_ip"]]["color"];
+        } else if (clients[packet["org_dst_ip"]] != null) {
+          return clients[packet["org_dst_ip"]]["color"];
+        }
+        return 'black';
+      }
 
+      function generateAnimation(packets) {
+        var pathData = toLineStrings(packets);
         var packetPaths = svg_anim.selectAll(".line").data(pathData);
         // update packetPaths
         packetPaths.attr({
@@ -97,7 +200,10 @@
         circles.attr({
               "class":"packet_circle",
               r: function (d, i) { return (5 + 10 * packets[i]['length'] / 1500) } ,
-              fill: 'red',
+              //fill: 'red',
+              fill: function (d, i) {
+                return getClientColor(packets[i]);
+              },
               transform: function (d) {
                 var p = d.getPointAtLength(0);
                 return "translate(" + [p.x, p.y] + ")";
@@ -109,7 +215,10 @@
               "class":"packet_circle",
               r: function (d, i) { return (5 + 10 * packets[i]['length'] / 1500) } ,
               // r: 10,
-              fill: 'red',
+              //fill: 'red',
+              fill: function (d, i) {
+                return getClientColor(packets[i]);
+              },
               transform: function (d) {
                 var p = d.getPointAtLength(0);
                 return "translate(" + [p.x, p.y] + ")";
@@ -126,7 +235,15 @@
               var p = d.getPointAtLength(d.getTotalLength()*t);
               return "translate(" + [p.x, p.y] + ")";
               }
-              });
+            });
+        // change country color
+
+        for (var i = 0; i < packets.length; i++) {
+          addPointsToCountry(packets[i]["dst_country"]["names"]["en"],
+            getClientColor(packets[i]),
+            packets[i]["length"], 1000 + i * 100);
+          //redrawCountry(packets[i]["dst_country"]["names"]["en"], 1000 + i * 100);
+        }
       }
 
       // socket.io サーバに接続
@@ -161,7 +278,7 @@
       //ws.onmessage = function(event) {
       socket.on('message', function(data) {
         // 受信したメッセージを復元
-        console.log(data);
+        //console.log(data);
         //var data = JSON.parse(data);
         switch (data['type']) {
           case 'packets':
@@ -179,6 +296,7 @@
           user: userName,
         }));
       };
+
 
     </script>
   </body>

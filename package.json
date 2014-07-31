@@ -28,7 +28,8 @@
     "maxmind-db-reader": "0.0.2",
     "socket.io": "0.9.16",
     "socket.io-client": "0.9.16",
-    "http-server": "0.6.1"
+    "http-server": "0.6.1",
+    "temp": "0.7.0"
   },
   "keywords": [
     "internet", "capture", "visualize", "web"

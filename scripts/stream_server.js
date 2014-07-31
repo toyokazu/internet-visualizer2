@@ -60,7 +60,7 @@ var server = http.createServer(function(req, res) {
   res.end(output);
 }).listen(port, host);
 
-var io = socketio.listen(server);
+var io = socketio.listen(server, { log: false });
 
 io.sockets.on("connection", function (socket) {
 
