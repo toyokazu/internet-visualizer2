@@ -10,9 +10,6 @@
       .map {
         fill: #CCDDCC;
       }
-      #scores {
-        float: right;
-      }
     </style>
   </head>
   <body>
@@ -22,7 +19,7 @@
     <script>
       // shared parameters
       var clients;
-      var fontSize = '72px';
+      var fontSize = '48px';
       var scoreTable;
       d3.json('clients.json', function(error, json) {
         if (error) return console.warn(error);
