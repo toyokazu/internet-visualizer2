@@ -22,14 +22,32 @@
     <script>
       // shared parameters
       var clients;
+      var fontSize = '72px';
+      var scoreTable;
       d3.json('clients.json', function(error, json) {
         if (error) return console.warn(error);
         clients = json;
+        // score table
+        scoreTable = d3.select('#scores').append('table');
+        var tr = scoreTable.append('tr');
+        for (var ipAddr in clients) {
+          tr.append('td')
+          .attr({
+            'id': clients[ipAddr]["color"]
+          })
+          .style('color', clients[ipAddr]["color"])
+          .style('font-size', fontSize)
+          .text("　" + clients[ipAddr]["color"] + " = ");
+
+          tr.append('td')
+          .attr({
+            'id': clients[ipAddr]["color"] + '_score'
+          })
+          .style('color', clients[ipAddr]["color"])
+          .style('font-size', fontSize)
+          .text(0);
+        }
       });
-      // score table
-      var table = d3.select('#scores').append('table');
-      //Object.keys(clients).forEach(key) {
-      //}
 
       // svg canvas
       var canvas = d3.select('#visualization')
@@ -106,38 +124,36 @@
       }
 
       function addPointsToCountry(country, color, point, delay) {
-        var country_path = svg_map.select('path[name="' + country + '"]')
+        var countryPath = svg_map.select('path[name="' + country + '"]')
         // 征服されていたらポイント加算なし
-        if (country_path.attr("conquered") != null) {
+        if (countryPath.attr("conquered") != null) {
           return;
         }
-        var attr_point = "point_" + color;
-        var value = country_path.attr(attr_point);
-        var curr_point;
+        var attrPoint = "point_" + color;
+        var value = countryPath.attr(attrPoint);
+        var currPoint;
         if (value == null) {
-          curr_point = 0;
+          currPoint = 0;
         } else {
-          curr_point = parseInt(value, 10);
+          currPoint = parseInt(value, 10);
         }
         //console.log("curr_point = " + curr_point);
-        new_point = curr_point + parseInt(point, 10);
+        newPoint = currPoint + parseInt(point, 10);
         //console.log("new_point = " + new_point);
-        country_path.attr(attr_point, new_point);
-        if (new_point > 10000) {
-          setPathColor(country_path, color, delay);
-          country_path.attr("conquered", true);
+        countryPath.attr(attrPoint, newPoint);
+        if (newPoint > 10000) {
+          setPathColor(countryPath, color, delay);
+          countryPath.attr("conquered", true);
+          var scoreField = scoreTable.select('td#' + color + '_score')
+          var score = parseInt(scoreField.text());
+          scoreField.text(score + 1);
         }
       }
 
-      //function redrawCountry(country, color, delay) {
       function setPathColor(path, color, delay) {
         //console.log(svg_map.select('[name="Japan"]'));
-        //svg_map.select('path[name="' + country + '"]')
         path.transition().delay(delay).duration(100)
           .style('fill', color);
-          //function() {
-          //  return "hsl(" + Math.random() * 360 + ",100%,50%)";
-          //});
       }
 
       function toLineString(d) {
@@ -242,40 +258,13 @@
           addPointsToCountry(packets[i]["dst_country"]["names"]["en"],
             getClientColor(packets[i]),
             packets[i]["length"], 1000 + i * 100);
-          //redrawCountry(packets[i]["dst_country"]["names"]["en"], 1000 + i * 100);
         }
       }
 
       // socket.io サーバに接続
       var socket = io.connect('http://localhost:12345/');
-      //var ws = new WebSocket('ws://localhost:12345/');
-      //var ws = new WebSocket('ws://localhost:12345/');
-      //var ws = new WebSocket('ws://172.16.145.136:8888/');
-
-      /*
-      // エラー処理
-      ws.onerror = function(e){
-        d3.select('#message').empty()
-          .addClass('alert alert-error')
-          .append('<button type="button" class="close" data-dismiss="alert">×</button>',
-              $('<i/>').addClass('icon-warning-sign'),
-              'サーバに接続できませんでした。'
-              );
-      }
-      */
-
-
-      // WebSocketサーバ接続イベント
-      /* ws.onopen = function() {
-        // 入室情報を文字列に変換して送信
-        ws.send(JSON.stringify({
-          type: 'message',
-          message: 'connected'
-          }));
-      }; */
 
       // メッセージ受信イベントを処理
-      //ws.onmessage = function(event) {
       socket.on('message', function(data) {
         // 受信したメッセージを復元
         //console.log(data);
@@ -287,14 +276,9 @@
             d3.select('#message').text(data['message']);
         }
       });
-      //};
 
       // ブラウザ終了イベント
       window.onbeforeunload = function () {
-        ws.send(JSON.stringify({
-          type: 'message',
-          user: userName,
-        }));
       };
 
 
