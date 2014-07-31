@@ -38,7 +38,8 @@
 
           tr.append('td')
           .attr({
-            'id': clients[ipAddr]["color"] + '_score'
+            'id': clients[ipAddr]["color"] + '_score',
+            'score': 0
           })
           .style('color', clients[ipAddr]["color"])
           .style('font-size', fontSize)
@@ -142,14 +143,16 @@
           setPathColor(countryPath, color, delay);
           countryPath.attr("conquered", true);
           var scoreField = scoreTable.select('td#' + color + '_score')
-          var score = parseInt(scoreField.text());
-          scoreField.text(score + 1);
+          var score = parseInt(scoreField.attr('score'));
+          scoreField.attr('score', score + 1);
+          scoreField.transition().delay(delay).duration(50)
+          .text(scoreField.attr('score'));
         }
       }
 
       function setPathColor(path, color, delay) {
         //console.log(svg_map.select('[name="Japan"]'));
-        path.transition().delay(delay).duration(100)
+        path.transition().delay(delay).duration(50)
           .style('fill', color);
       }
 
