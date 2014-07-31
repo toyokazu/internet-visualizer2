@@ -261,8 +261,8 @@ tshark_reader.on('line', function(line){
     'dst_location': dst_location,
     'dst_country': dst_country,
     'protocol': packet[4],
-    'length': packet[5],
-    'data': packet[6]
+    'length': packet[5]
+  //  'data': packet[6]
   };
   if (debug) {
     console.log(util.inspect(message));
